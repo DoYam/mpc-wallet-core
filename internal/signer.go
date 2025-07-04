@@ -1,61 +1,26 @@
 package internal
 
 import (
-	"crypto/ecdsa"
-	"crypto/elliptic"
-	"crypto/rand"
-	"crypto/sha256"
-	"encoding/json"
-	"fmt"
+	"mpc-wallet-core/core"
 )
 
-var privKey *ecdsa.PrivateKey
+var MyKeyShare *core.KeyShare
 
-func InitKey() error {
-	var err error
-	privKey, err = ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+func InitKeyShare(id string) error {
+	ksA, ksB, err := core.GenerateKeyShares()
 	if err != nil {
 		return err
 	}
-	fmt.Println("[Shared Key] Public:", privKey.PublicKey)
+
+	if id == "A" {
+		MyKeyShare = ksA
+	} else {
+		MyKeyShare = ksB
+	}
 	return nil
+
 }
 
-func RefreshKey() error {
-	return InitKey()
-}
+func Sign(msg string) (*core.PartialSignature, error) { return core.PartialSign(msg, MyKeyShare) }
 
-func GetPublicKeyJSON() ([]byte, error) {
-	pub := privKey.PublicKey
-	res := map[string]string{
-		"curve": "P-256",
-		"x":     pub.X.Text(16),
-		"y":     pub.Y.Text(16),
-	}
-	return json.Marshal(res)
-}
-
-func SignMessage(msg string) (string, string, string, error) {
-	hash := sha256.Sum256([]byte(msg))
-	r, s, err := ecdsa.Sign(rand.Reader, privKey, hash[:])
-	if err != nil {
-		return "", "", "", err
-	}
-	return r.Text(16), s.Text(16), fmt.Sprintf("%x|%x", r, s), nil
-}
-
-// VerifySignature checks if the (r, s) signature is valid for the given message
-func VerifySignature(msg, rHex, sHex string) bool {
-	hash := sha256.Sum256([]byte(msg))
-
-	r := new(big.Int)
-	s := new(big.Int)
-	if _, ok := r.SetString(rHex, 16); !ok {
-		return false
-	}
-	if _, ok := s.SetString(sHex, 16); !ok {
-		return false
-	}
-
-	return ecdsa.Verify(&privKey.PublicKey, hash[:], r, s)
-}
+func GetPublicKeyJSON() ([]byte, error) { return core.PublicKeyToJSON(MyKeyShare) }

@@ -16,6 +16,8 @@ func main() {
 
 	http.HandleFunc("/sign", handlers.SignHandler)
 	http.HandleFunc("/wallet", handlers.WalletHandler)
+	http.HandleFunc("/verify", handlers.VerifyHandler)
+
 
 	fmt.Println("[MPC PoC] Listening on :8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))

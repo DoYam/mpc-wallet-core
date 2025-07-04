@@ -43,3 +43,19 @@ func SignMessage(msg string) (string, string, string, error) {
 	}
 	return r.Text(16), s.Text(16), fmt.Sprintf("%x|%x", r, s), nil
 }
+
+// VerifySignature checks if the (r, s) signature is valid for the given message
+func VerifySignature(msg, rHex, sHex string) bool {
+	hash := sha256.Sum256([]byte(msg))
+
+	r := new(big.Int)
+	s := new(big.Int)
+	if _, ok := r.SetString(rHex, 16); !ok {
+		return false
+	}
+	if _, ok := s.SetString(sHex, 16); !ok {
+		return false
+	}
+
+	return ecdsa.Verify(&privKey.PublicKey, hash[:], r, s)
+}

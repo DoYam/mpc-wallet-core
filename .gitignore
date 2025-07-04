@@ -1,0 +1,17 @@
+# Go build artifacts
+/server
+*.exe
+*.out
+
+# Logs
+*.log
+
+# OS junk
+.DS_Store
+
+# IDE/editor
+.vscode/
+.idea/
+
+# Env variables
+.env
